@@ -1,31 +1,14 @@
 /*
- * EEPROM PROGRAMMER
- * 15-18 Address Pins
- * 8 Data Pins
- * 2 Control Pins (OEb, WEb)
  * 
- * CEb must tied to ground
  */
 
 #include <Arduino.h>
 #include <ArduinoBLE.h>
-/* #include "eeprom.hpp" */
-/* #include "address.hpp" */
 
-/* #include "control_bytes.hpp" */
+#include "settings.hpp"
+#include "status.hpp"
+#include "services.hpp"
 
-constexpr int LED_RED = 2;
-constexpr int LED_YELLOW = 3;
-constexpr int LED_GREEN = 4;
-constexpr int PIN_TENG = 0;
-
-/* void maskedWrite(uint32_t mask, uint32_t bits) { */
-/*   for (uint32_t i = 0; i < 32; i++) { */
-/*       if (mask & (1 << i)) { */
-/*           digitalWrite(i, bits & (1 << i)); */
-/*       } */
-/*   } */
-/* } */ 
 void blinkLED(unsigned n=5, unsigned delay_=200) { 
     for (unsigned i = 0; i < n; i++) {
         digitalWrite(LED_BUILTIN, HIGH);
@@ -34,6 +17,7 @@ void blinkLED(unsigned n=5, unsigned delay_=200) {
         delay(delay_);
     }
 }
+
 
 
 unsigned MAX_DEVIATION = 0;
@@ -58,49 +42,38 @@ void measureBaseline(unsigned nMeas, unsigned interval=50) {
     }
 }
 
-void setup() {
-    /* pinMode(LED_BUILTIN, OUTPUT); */
-    /* digitalWrite(LED_BUILTIN, HIGH); */
-    /* delay(200); */
 
+void setup() {
+    setStatus(DeviceStatus::BUSY);
     Serial.begin(9600);
     /* // wait until available */
-    while (!Serial);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(200); // empty buffer
-    while (Serial.read() != -1);
+    /* while (!Serial); */
 
-    /* digitalWrite(LED_BUILTIN, HIGH); */
-    /* delay(5000); */
+    blinkLED(2);
 
-    /* // reset counter */
-    /* blinkLED(); */
-
-    /* uint8_t payload[] = { 1, 2, 3, 4, 5, 69 }; */
-    /* uint8_t type = '#'; */
-    /* static_assert(sizeof(payload) == 6); */
-    /* uint16_t size = sizeof(payload); */
-    /* Serial.write(type); */
-    /* Serial.write(lowByte(size)); */
-    /* Serial.write(highByte(size));u */
-    /* Serial.write(payload, size); */
-
-    /* delay(5000); */
-    blinkLED(4);
     if (!BLE.begin()) {
         Serial.println("starting Bluetooth® Low Energy module failed!");
+        setStatus(DeviceStatus::ERROR);
+        while(true);
     }
-    BLE.setDeviceName("ArduinoTeng");
+    /* BLE.setDeviceName("ArduinoTENG"); */
+    BLE.setLocalName("ArduinoTENG");
+
+    byte data[10] = "\xFF\xFFMQU@TUM";  // 0xFFFF manufacturer id for testing
+    BLE.setManufacturerData(data, 10);
+
+    tengService.addCharacteristic(tengStatus);
+    tengService.addCharacteristic(tengCommand);
+    tengService.addCharacteristic(tengReading);
+
+    BLE.addService(tengService);
+    BLE.setAdvertisedService(tengService);
+
+    BLE.setConnectable(true);
+    blinkLED(3);
     BLE.advertise();
 
-    measureBaseline(100);
-    digitalWrite(LED_RED, HIGH);
-    digitalWrite(LED_YELLOW, HIGH);
-    digitalWrite(LED_GREEN, HIGH);
-    delay(500);
-    digitalWrite(LED_RED, LOW);
-    digitalWrite(LED_YELLOW, LOW);
-    digitalWrite(LED_GREEN, LOW);
+    setStatus(DeviceStatus::WAIT_CONNECT);
 }
 
 
@@ -109,6 +82,53 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
+    blinkLED(3, 100);
+     // listen for Bluetooth® Low Energy peripherals to connect:
+    BLEDevice central = BLE.central();
+
+    // if a central is connected to peripheral:
+    if (central) {
+        setStatus(DeviceStatus::READING);
+        Serial.print("Connected to central: ");
+        Serial.println(central.address());
+
+        while (central.connected()) {
+            if (tengCommand.written()) {
+                switch (tengCommand.value()) {
+                    case Command::NOOP:
+                        setStatus(DeviceStatus::BUSY);
+                        delay(1000);
+                        break;
+                    case Command::MEASURE_BASELINE:
+                        setStatus(DeviceStatus::MEASURING_BASELINE);
+                        measureBaseline(100);
+                        break;
+                    default:
+                        setStatus(DeviceStatus::ERROR);
+                        delay(1000);
+                        break;
+                }
+                setStatus(DeviceStatus::READING);
+            }
+            int val = analogRead(PIN_TENG);
+            tengReading.writeValue(static_cast<uint16_t>(val));
+            Serial.print(val, DEC);
+            val -= BASELINE;
+            if (val < 0) { val = -val; }
+            Serial.print("/");
+            Serial.println(val, DEC);
+            delay(300);
+        }
+        setStatus(DeviceStatus::WAIT_CONNECT);
+        // when the central disconnects, notify the user
+        Serial.print("Disconnected from central MAC: ");
+        Serial.println(central.address());
+    }
+    else {
+        BLE.advertise();
+    }
+    return;
+
     int led_red = LOW;
     int led_yellow = LOW;
     int led_green = LOW;
@@ -145,7 +165,7 @@ void loop() {
     /* if (mem_size = CTRL_2M) { */
     /*     eeprom = SST39SF02A; */
     /* } */
-    /* AddressState address(Counter(), eeprom.addressPinCount, eeprom.addressPins); */
+    /* AddressStatus address(Counter(), eeprom.addressPinCount, eeprom.addressPins); */
     /* const int dataSize = 0x8000; */
     /* uint8_t data[dataSize]; */
 
