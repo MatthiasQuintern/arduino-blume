@@ -5,7 +5,7 @@
 #include "services.hpp"
 
 // needs to be in separate file because sketch preprocessor reorders stuff
-enum DeviceStatus : uint8_t { ERROR = 0, BUSY, WAIT_CONNECT, MEASURING_BASELINE, READING };
+enum DeviceStatus : byte { ERROR = 0, BUSY, WAIT_CONNECT, MEASURING_BASELINE, READING };
 
 void setStatusLED(DeviceStatus s, bool value) {
     switch (s) {

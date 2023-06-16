@@ -20,8 +20,8 @@ void blinkLED(unsigned n=5, unsigned delay_=200) {
 
 
 
-unsigned MAX_DEVIATION = 0;
-unsigned BASELINE = 0;
+uint16_t MAX_DEVIATION = 0;
+uint16_t BASELINE = 0;
 void measureBaseline(unsigned nMeas, unsigned interval=50) {
     uint64_t value = 0;
     unsigned minVal = 1023;
@@ -62,10 +62,7 @@ void setup() {
     byte data[10] = "\xFF\xFFMQU@TUM";  // 0xFFFF manufacturer id for testing
     BLE.setManufacturerData(data, 10);
 
-    tengService.addCharacteristic(tengStatus);
-    tengService.addCharacteristic(tengCommand);
-    tengService.addCharacteristic(tengReading);
-
+    initServices();
     BLE.addService(tengService);
     BLE.setAdvertisedService(tengService);
 
