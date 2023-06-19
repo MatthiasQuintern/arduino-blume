@@ -9,6 +9,12 @@
 #include "status.hpp"
 #include "services.hpp"
 
+// TODO
+/* std::array<uint16_t, 10000> valueBuffer;  // 20kB buffer for readings */
+/* auto valueBufferWriteIter = valueBuffer.begin();  // points past the element that was last written */
+
+
+
 void blinkLED(unsigned n=5, unsigned delay_=200) { 
     for (unsigned i = 0; i < n; i++) {
         digitalWrite(LED_BUILTIN, HIGH);
@@ -151,98 +157,4 @@ void loop() {
     digitalWrite(LED_GREEN, led_green);
 
     delay(100);
-
-
-    
-    /* // init address */
-    /* const int* addressPins = nullptr; */
-    /* unsigned addressPinCount = 0; */
-    /* // TODO pass eeprom via serial */
-    /* EEPROM eeprom = AT28C256; */
-    /* if (mem_size = CTRL_2M) { */
-    /*     eeprom = SST39SF02A; */
-    /* } */
-    /* AddressStatus address(Counter(), eeprom.addressPinCount, eeprom.addressPins); */
-    /* const int dataSize = 0x8000; */
-    /* uint8_t data[dataSize]; */
-
-    /* while (true) { */
-
-    /* } */
-    /* if (!Serial.available()) { continue; } */
-
-    /* // read packet */
-    /* uint8_t type = Serial.read(); */
-    /* uint16_t size = Serial.read();  // low byte */
-    /* size |= (Serial.read() << 8);   // high byte */
-    /* Packet packet(type, size); */
-    /* Serial.readBytes(packet.payload, size); */
-
-    /* switch(type) { */
-    /*     case PacketType::WRITE: { */
-    /*         break; */
-    /*     } */
-    /*     case PacketType::READ: { */
-    /*         break; */
-    /*     } */
-    /*     case PacketType::SET_ADDRESS { */
-
-    /*     } */
-    /*     default: { */
-    /*         break; */
-    /*     } */
-    /* } */
-
-
-
-    
-    /* byte mem_size = 0; */
-    /* byte action = 0; */
-    /* byte x = 0; */
-    /* while (action == 0 || mem_size == 0) { */
-    /*     digitalWrite(LED_BUILTIN, HIGH); */
-    /*     if (Serial.available() <= 0) { */
-    /*         blinkLED(3); */
-    /*     } */
-    /*     else { */
-    /*         /1* while (Serial.available() > 0) { *1/ */
-    /*         /1*     Serial.write(Serial.read()); *1/ */
-    /*         /1* } *1/ */
-    /*         /1* Serial.write('\n'); *1/ */
-
-    /*         Serial.write(static_cast<uint8_t>(Serial.available())); */
-    /*         int cmd = Serial.read(); */
-    /*         switch (cmd) { */
-    /*             case CTRL_WRITE: */
-    /*             case CTRL_READ: */   
-    /*                 action = cmd; */
-    /*                 Serial.write('\0'); */
-    /*                 Serial.write('\0'); */
-    /*                 break; */
-    /*             default: */
-    /*                 mem_size = cmd; */
-    /*                 Serial.write('\1'); */
-    /*                 Serial.write('\1'); */
-    /*         } */
-    /*         Serial.write(static_cast<uint8_t>(cmd)); */
-    /*         Serial.write('\2'); */
-    /*         Serial.write('\2'); */
-    /*     } */
-    /*     Serial.write(x); */
-    /*     Serial.print('\n'); */
-    /*     x++; */
-    /*     delay(1000); */
-    /*     digitalWrite(LED_BUILTIN, LOW); */
-    /*     delay(1000); */
-    /* } */
-
-    /* if (action == CTRL_WRITE) { */
-    /*     Serial.println("Write"); */
-    /* } */
-    /* else if (action == CTRL_READ) { */
-    /*     Serial.println("Read"); */
-    /*     eeprom.read(data, dataSize, address); */
-    /*     Serial.write(data, dataSize); */
-    /*     blinkLED(10); */
-    /* } */
 }
