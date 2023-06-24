@@ -8,6 +8,7 @@
 #include "settings.hpp"
 #include "status.hpp"
 #include "services.hpp"
+#include "measure.hpp"
 
 // TODO
 /* std::array<uint16_t, 10000> valueBuffer;  // 20kB buffer for readings */
@@ -26,27 +27,26 @@ void blinkLED(unsigned n=5, unsigned delay_=200) {
 
 
 
-uint16_t MAX_DEVIATION = 0;
-uint16_t BASELINE = 0;
-void measureBaseline(unsigned nMeas, unsigned interval=50) {
-    uint64_t value = 0;
-    unsigned minVal = 1023;
-    unsigned maxVal = 0;
-    for (unsigned i = 0; i < nMeas; i++) {
-        unsigned reading = analogRead(PIN_TENG);
-        value += reading;
-        delay(interval);
-        if (reading > maxVal) { maxVal = reading; }
-        if (reading < minVal) { minVal = reading; }
-    }
-    BASELINE = value / nMeas;
-    if (BASELINE - minVal > maxVal - BASELINE) {
-        MAX_DEVIATION = BASELINE - minVal;
-    }
-    else {
-        MAX_DEVIATION = maxVal - BASELINE;
-    }
-}
+/* uint16_t MAX_DEVIATION = 0; */
+/* void measurebaseline(unsigned nmeas, unsigned interval=50) { */
+/*     uint64_t value = 0; */
+/*     unsigned minval = 1023; */
+/*     unsigned maxval = 0; */
+/*     for (unsigned i = 0; i < nmeas; i++) { */
+/*         unsigned reading = analogread(pin_teng); */
+/*         value += reading; */
+/*         delay(interval); */
+/*         if (reading > maxval) { maxval = reading; } */
+/*         if (reading < minval) { minval = reading; } */
+/*     } */
+/*     BASELINE = value / nMeas; */
+/*     if (BASELINE - minVal > maxVal - BASELINE) { */
+/*         MAX_DEVIATION = BASELINE - minVal; */
+/*     } */
+/*     else { */
+/*         MAX_DEVIATION = maxVal - BASELINE; */
+/*     } */
+/* } */
 
 
 void setup() {
@@ -72,6 +72,10 @@ void setup() {
     BLE.addService(tengService);
     BLE.setAdvertisedService(tengService);
 
+    // defaults
+    tengCount.writeValue(100);
+    tengInterval.writeValue(100);
+
     BLE.setConnectable(true);
     blinkLED(3);
     BLE.advertise();
@@ -81,47 +85,68 @@ void setup() {
 
 
 
+
 /* constexpr int max_val = 1023 / 5 * 3.5;  // 1023 max val for 5V */
+// it seems this function must return immediately, otherwise the connection will time out
+void commandWrittenHandler(BLEDevice central, BLECharacteristic characteristic) {
+    switch (tengCommand.value()) {
+        case Command::STOP:
+            measurementTask = STOP_MEASURE;
+            break;
+        case Command::MEASURE:
+            if (measurementTask == STOP_MEASURE) {
+                measurementTask = START_MEASURE;
+            }
+            else {
+                Serial.println("ERROR: Command 'MEASURE' received while measurement is active");
+            }
+            break;
+        case Command::MEASURE_COUNT:
+            if (measurementTask == STOP_MEASURE) {
+                measurementTask = START_MEASURE_COUNT;
+            }
+            else {
+                Serial.println("ERROR: Command 'MEASURE_COUNT' received while measurement is active");
+            }
+            break;
+        /* case Command::MEASURE_BASELINE: */
+        /*     setStatus(DeviceStatus::MEASURING_BASELINE); */
+        /*     measureBaseline(100); */
+        /*     break; */
+        default:
+            setStatus(DeviceStatus::ERROR);
+            Serial.print("ERROR: Unkown command: ");
+            Serial.println(tengCommand.value(), HEX);
+            delay(1000);
+            break;
+    }
+}
 
 // the loop function runs over and over again forever
 void loop() {
-    blinkLED(3, 100);
+    blinkLED(3, 300);
      // listen for Bluetooth® Low Energy peripherals to connect:
     BLEDevice central = BLE.central();
 
     // if a central is connected to peripheral:
     if (central) {
-        setStatus(DeviceStatus::READING);
+        setStatus(DeviceStatus::CONNECTED);
+        tengCommand.setEventHandler(BLEWritten, commandWrittenHandler);
+
         Serial.print("Connected to central: ");
         Serial.println(central.address());
 
         while (central.connected()) {
-            if (tengCommand.written()) {
-                switch (tengCommand.value()) {
-                    case Command::NOOP:
-                        setStatus(DeviceStatus::BUSY);
-                        delay(1000);
-                        break;
-                    case Command::MEASURE_BASELINE:
-                        setStatus(DeviceStatus::MEASURING_BASELINE);
-                        measureBaseline(100);
-                        break;
-                    default:
-                        setStatus(DeviceStatus::ERROR);
-                        delay(1000);
-                        break;
-                }
-                setStatus(DeviceStatus::READING);
+            blinkLED(1, 200);
+            if (measurementTask == START_MEASURE) {
+                measure(central, false);
             }
-            int val = analogRead(PIN_TENG);
-            tengReading.writeValue(static_cast<uint16_t>(val));
-            Serial.print(val, DEC);
-            val -= BASELINE;
-            if (val < 0) { val = -val; }
-            Serial.print("/");
-            Serial.println(val, DEC);
-            delay(300);
+            else if (measurementTask == START_MEASURE_COUNT) {
+                measure(central, true);
+            }
+
         }
+
         setStatus(DeviceStatus::WAIT_CONNECT);
         // when the central disconnects, notify the user
         Serial.print("Disconnected from central MAC: ");
@@ -130,31 +155,4 @@ void loop() {
     else {
         BLE.advertise();
     }
-    return;
-
-    int led_red = LOW;
-    int led_yellow = LOW;
-    int led_green = LOW;
-
-    int val = analogRead(PIN_TENG);
-    Serial.print(val, DEC);
-    val -= BASELINE;
-    if (val < 0) { val = -val; }
-    Serial.print("/");
-    Serial.println(val, DEC);
-
-    if (val >= MAX_DEVIATION * 1) {
-        led_green = HIGH;
-    }
-    if (val >= MAX_DEVIATION * 2) {
-        led_yellow = HIGH;
-    }
-    if (val >= MAX_DEVIATION * 3) {
-        led_red = HIGH;
-    }
-    digitalWrite(LED_RED, led_red);
-    digitalWrite(LED_YELLOW, led_yellow);
-    digitalWrite(LED_GREEN, led_green);
-
-    delay(100);
 }
