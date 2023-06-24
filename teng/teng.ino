@@ -57,6 +57,9 @@ void setup() {
 
     blinkLED(2);
 
+    // TODO: test if works
+    analogReadResolution(12);  // set analog input to 12 bit resolution (0-4095)
+
     if (!BLE.begin()) {
         Serial.println("starting Bluetooth® Low Energy module failed!");
         setStatus(DeviceStatus::ERROR);
