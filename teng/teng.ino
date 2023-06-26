@@ -26,29 +26,6 @@ void blinkLED(unsigned n=5, unsigned delay_=200) {
 }
 
 
-
-/* uint16_t MAX_DEVIATION = 0; */
-/* void measurebaseline(unsigned nmeas, unsigned interval=50) { */
-/*     uint64_t value = 0; */
-/*     unsigned minval = 1023; */
-/*     unsigned maxval = 0; */
-/*     for (unsigned i = 0; i < nmeas; i++) { */
-/*         unsigned reading = analogread(pin_teng); */
-/*         value += reading; */
-/*         delay(interval); */
-/*         if (reading > maxval) { maxval = reading; } */
-/*         if (reading < minval) { minval = reading; } */
-/*     } */
-/*     BASELINE = value / nMeas; */
-/*     if (BASELINE - minVal > maxVal - BASELINE) { */
-/*         MAX_DEVIATION = BASELINE - minVal; */
-/*     } */
-/*     else { */
-/*         MAX_DEVIATION = maxVal - BASELINE; */
-/*     } */
-/* } */
-
-
 void setup() {
     setStatus(DeviceStatus::BUSY);
     Serial.begin(9600);
