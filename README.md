@@ -2,7 +2,7 @@
 Measure analog signal using an Arduino and Bluetooth communication.
 This program was written (and tested) for the **Arduino RP2040 Connect**.
 
-[https://github.com/MatthiasQuintern/m-teng] has a backend that can connect to the Arduino.
+[https://github.com/MatthiasQuintern/m-teng](m-teng) has a backend that can connect to the Arduino.
 
 ## Configuration
 See `settings.hpp` for which pin needs to be connected.
@@ -19,6 +19,7 @@ arduino-cli upload --profile nanorp
 The Arduino will advertise a Bluetooth Low Energy service which can be used to interact with the device. 
 
 Service UUID: `00010000-9a74-4b30-9361-4a16ec09930f`
+
 0. status (`uint8_t`, `rn`): `00010001-9a74-4b30-9361-4a16ec09930f`
     - `0`: **ERROR**: error occured: invalid command received, can not advertise Bluetooth service, etc.
     - `1`: **BUSY**
