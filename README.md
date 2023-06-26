@@ -2,7 +2,7 @@
 Measure analog signal using an Arduino and Bluetooth communication.
 This program was written (and tested) for the **Arduino RP2040 Connect**.
 
-[https://github.com/MatthiasQuintern/m-teng](m-teng) has a backend that can connect to the Arduino.
+[m-teng](https://github.com/MatthiasQuintern/m-teng) has a backend that can connect to the Arduino.
 
 ## Configuration
 See `settings.hpp` for which pin needs to be connected.
@@ -35,7 +35,7 @@ Service UUID: `00010000-9a74-4b30-9361-4a16ec09930f`
     the reading from the Arduinos analog pin
 3. count: (`uint16_t`, `rw`): `00010004-9a74-4b30-9361-4a16ec09930f`
     set the number of measurements to take with `MEASURE_COUNT`
-4. inteval: (`uint16_t`, `rw`): `00010005-9a74-4b30-9361-4a16ec09930f`
+4. interval: (`uint16_t`, `rw`): `00010005-9a74-4b30-9361-4a16ec09930f`
     set the interval between measurements in ms
 
 
