@@ -1,6 +1,6 @@
-# teng-arduino
-Measure analog signal using an Arduino and Bluetooth communication.
-This program was written (and tested) for the **Arduino RP2040 Connect**.
+# arduino-blume
+**Me**asure analog signal using an Arduino and **Blu**etooth communication.
+This program was written for (and tested with) the **Arduino RP2040 Connect**.
 
 [m-teng](https://github.com/MatthiasQuintern/m-teng) has a backend that can connect to the Arduino.
 
@@ -10,7 +10,7 @@ The program uses 3 leds for displaying device status, however these are optional
 
 ## Installation
 ```
-git clone https://github.com/MatthiasQuintern/teng-arduino
+git clone https://github.com/MatthiasQuintern/arduino-blume
 arduino-cli compile --profile nanorp
 arduino-cli upload --profile nanorp
 ```
@@ -37,6 +37,3 @@ Service UUID: `00010000-9a74-4b30-9361-4a16ec09930f`
     set the number of measurements to take with `MEASURE_COUNT`
 4. interval: (`uint16_t`, `rw`): `00010005-9a74-4b30-9361-4a16ec09930f`
     set the interval between measurements in ms
-
-
-
