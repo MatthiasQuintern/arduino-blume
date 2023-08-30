@@ -1,8 +1,11 @@
 # arduino-blume
 **Me**asure analog signal using an Arduino and **Blu**etooth communication.
-This program was written for (and tested with) the **Arduino RP2040 Connect**.
 
-[m-teng](https://github.com/MatthiasQuintern/m-teng) has a backend that can connect to the Arduino.
+This project was written for my bachelor's thesis.
+
+It mesaures voltage one one of arduino's analog pins and transmits it via Bluetooth LE. It was written for (and only tested with) the **Arduino RP2040 Connect**.
+
+[m-teng](https://github.com/MatthiasQuintern/m-teng) has a backend that can connect to the Arduino to receive the data.
 
 ## Configuration
 See `settings.hpp` for which pin needs to be connected.
